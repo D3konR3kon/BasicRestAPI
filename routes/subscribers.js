@@ -1,7 +1,7 @@
 const express = require('express')
 const res = require('express/lib/response')
 const router = express.Router()
-const Subscriber = require('../model/subcriber')
+const Subscriber = require('../model/subscriber')
 
 //Get all
 router.get('/', async(req, res) => {
@@ -14,7 +14,7 @@ router.get('/', async(req, res) => {
 })
 //Get one
 router.get('/:id', getSubscriber, (req, res) => {
-    res.send(req.subscriber.name)
+    res.send(res.subscriber.name)
 })
 
 //Create one
@@ -33,12 +33,32 @@ router.post('/', async(req, res) => {
 })
 
 //Update one
-router.patch('/:id', getSubscriber, (req, res) => {
+router.patch('/:id', getSubscriber, async(req, res) => {
+if(req.body.name != null){
+    res.subscriber.name = req.body.name
+}
+if(req.body.subscribedToChannel != null){
+    res.subscriber.subscribedToChannel = req.body.subscribedToChannel
+}
+
+try {
+    const updatedSubscriber = await res.subscriber.save()
+    res.json(updatedSubscriber)
+} catch (error) {
+    return res.status(400).json({message: err.message}) 
+}
 
 })
 
 //Delete
-router.delete('/:id',getSubscriber, (req, res) => {
+router.delete('/:id',getSubscriber, async(req, res) => {
+    try {
+        await res.subscriber.remove()
+        res.json({ message: 'Delete subscriber'})
+    } catch (error) {
+        return res.status(500).json({message: err.message}) 
+
+    }
 
 })
 
@@ -54,6 +74,7 @@ async function getSubscriber(req,res,next){
     }
 
     res.subscriber = subscriber 
+    
     next()
 }
 
